@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Treatment Process — MMA Network Navigator</title>
+  <style>
+    :root {
+      --water-deep: #0b3d6b;
+      --water-mid: #1565a7;
+      --water-light: #4a9eda;
+      --water-pale: #d0e8f7;
+      --water-tint: #eaf4fc;
+      --foam: #ffffff;
+      --clean: #2e9e6b;
+      --text-primary: #1a2a3a;
+      --text-secondary: #4a5a6a;
+      --text-muted: #7a8a9a;
+      --shadow: rgba(11, 61, 107, 0.15);
+      --shadow-strong: rgba(11, 61, 107, 0.25);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #e8edf2;
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, var(--water-deep) 0%, var(--water-mid) 100%);
+      padding: 1.75rem 2rem 1.5rem;
+      text-align: center;
+    }
+    header h1 {
+      color: var(--foam);
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.25rem;
+    }
+    header p {
+      color: var(--water-pale);
+      font-size: 0.9rem;
+    }
+
+    /* ── Image Container ── */
+    .diagram-wrapper {
+      max-width: 1400px;
+      margin: 2rem auto 0;
+      padding: 0 1rem;
+    }
+    .diagram-container {
+      position: relative;
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px var(--shadow);
+    }
+    .diagram-container img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /* ── Hotspots ── */
+    .hotspot {
+      position: absolute;
+      cursor: pointer;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+      z-index: 2;
+    }
+    .hotspot:hover,
+    .hotspot.active {
+      border-color: var(--water-light);
+      background: rgba(74, 158, 218, 0.1);
+      box-shadow: 0 0 20px rgba(74, 158, 218, 0.25);
+    }
+    .hotspot.active {
+      border-color: var(--water-mid);
+      background: rgba(21, 101, 167, 0.12);
+      box-shadow: 0 0 24px rgba(21, 101, 167, 0.3);
+    }
+
+    /* Pulse hint on hotspots */
+    .hotspot::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 12px;
+      border: 2px solid var(--water-light);
+      opacity: 0;
+      animation: hintPulse 3s ease-in-out infinite;
+    }
+    .hotspot:hover::after,
+    .hotspot.active::after {
+      animation: none;
+      opacity: 0;
+    }
+    @keyframes hintPulse {
+      0%, 100% { opacity: 0; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.02); }
+    }
+    /* Stagger the pulse */
+    .hotspot:nth-child(1)::after { animation-delay: 0s; }
+    .hotspot:nth-child(2)::after { animation-delay: 0.4s; }
+    .hotspot:nth-child(3)::after { animation-delay: 0.8s; }
+    .hotspot:nth-child(4)::after { animation-delay: 1.2s; }
+    .hotspot:nth-child(5)::after { animation-delay: 1.6s; }
+    .hotspot:nth-child(6)::after { animation-delay: 2.0s; }
+    .hotspot:nth-child(7)::after { animation-delay: 2.4s; }
+
+    /* ── Click hint ── */
+    .click-hint {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      margin: 1rem 0 0.5rem;
+      animation: fade 3s ease-in-out infinite;
+    }
+    @keyframes fade {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    /* ── Detail Panel ── */
+    .detail-panel {
+      max-width: 1400px;
+      margin: 1.25rem auto 2.5rem;
+      padding: 0 1rem;
+    }
+    .detail-card {
+      background: var(--foam);
+      border-radius: 14px;
+      box-shadow: 0 4px 16px var(--shadow);
+      overflow: hidden;
+      display: none;
+      animation: slideUp 0.3s ease;
+    }
+    .detail-card.visible { display: block; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .detail-header {
+      background: linear-gradient(135deg, var(--water-deep), var(--water-mid));
+      padding: 1.25rem 1.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .detail-number {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      color: var(--foam);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .detail-header h2 {
+      color: var(--foam);
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+    .detail-header .subtitle {
+      color: var(--water-pale);
+      font-size: 0.82rem;
+      margin-top: 0.1rem;
+    }
+
+    .detail-body {
+      padding: 1.5rem 1.75rem 1.75rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    .detail-section h4 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+    }
+    .detail-section p {
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+    .detail-section ul {
+      list-style: none;
+      padding: 0;
+    }
+    .detail-section ul li {
+      font-size: 0.86rem;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      padding: 0.25rem 0 0.25rem 1.1rem;
+      position: relative;
+    }
+    .detail-section ul li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.6rem;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--water-light);
+    }
+    .detail-section ul li strong {
+      color: var(--text-primary);
+    }
+
+    /* Quality bar */
+    .quality-section {
+      grid-column: 1 / -1;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--water-pale);
+    }
+    .quality-bar {
+      margin-top: 0.3rem;
+      height: 6px;
+      background: #e8edf2;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .quality-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.8s ease;
+    }
+    .quality-label {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.2rem;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 1.5rem 1rem 2rem;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+    footer strong { color: var(--text-secondary); }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .detail-body {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      header h1 { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>How We Turn Raw Data Into Trusted Intelligence</h1>
+  <p>MMA Network Navigator — Data Treatment Process</p>
+</header>
+
+<div class="click-hint">Click any stage on the diagram to see what we do at each step</div>
+
+<div class="diagram-wrapper">
+  <div class="diagram-container" id="diagram">
+    <img src="water-treatment.png" alt="Water Treatment Process Diagram" />
+
+    <!-- Hotspot positions calibrated via drag tool, +10% size centered -->
+    <!-- Top row: Water Intake, Coagulation, Sedimentation, Filtration -->
+    <div class="hotspot" data-stage="0" style="left: 24.7%; top: 14.9%; width: 12.0%; height: 25.9%;"></div>
+    <div class="hotspot" data-stage="1" style="left: 42.1%; top: 19.5%; width: 11.6%; height: 21.1%;"></div>
+    <div class="hotspot" data-stage="2" style="left: 57.3%; top: 21.3%; width: 16.1%; height: 19.8%;"></div>
+    <div class="hotspot" data-stage="3" style="left: 77.5%; top: 13.5%; width: 10.8%; height: 26.1%;"></div>
+
+    <!-- Bottom row: Disinfection, Storage, Distribution -->
+    <div class="hotspot" data-stage="4" style="left: 76.2%; top: 63.9%; width: 13.3%; height: 21.7%;"></div>
+    <div class="hotspot" data-stage="5" style="left: 59.3%; top: 60.1%; width: 8.6%; height: 26.3%;"></div>
+    <div class="hotspot" data-stage="6" style="left: 30.8%; top: 62.5%; width: 20.6%; height: 24.8%;"></div>
+  </div>
+</div>
+
+<div class="detail-panel" id="detailPanel"></div>
+
+<footer>
+  <strong>MMA Network Navigator</strong> — Powered by Third Horizon Analytics
+</footer>
+
+<script>
+const stages = [
+  {
+    num: 1,
+    title: 'Water Intake',
+    subtitle: 'Pulling in the raw data',
+    qualityWidth: '12%',
+    qualityColor: '#8B7355',
+    qualityLeft: 'Raw, unprocessed',
+    qualityRight: '',
+    left: {
+      heading: 'What Happens with Water',
+      body: 'Raw water is pumped from a natural source — a river, lake, or mountain reservoir. It contains sediment, bacteria, organic matter, and dissolved chemicals. Nothing has been treated yet. This is the rawest possible form of the supply.'
+    },
+    right: {
+      heading: 'What We Do with Data',
+      items: [
+        '<strong>Source discovery:</strong> Every health insurer and hospital in the U.S. is required to publish their negotiated prices in machine-readable files — often hundreds of gigabytes each.',
+        '<strong>File acquisition:</strong> We systematically discover, download, and catalog these files from hundreds of insurers and thousands of hospitals nationwide.',
+        '<strong>Format normalization:</strong> Files come in different formats, compression types, and structures. We bring them all into a common staging environment.',
+        'This is pure "raw water" — massive, messy, and completely unusable without significant processing.'
+      ]
+    }
+  },
+  {
+    num: 2,
+    title: 'Coagulation',
+    subtitle: 'Reconciling identities and surfacing problems',
+    qualityWidth: '30%',
+    qualityColor: '#c4913c',
+    qualityLeft: 'Errors becoming visible',
+    qualityRight: '',
+    left: {
+      heading: 'What Happens with Water',
+      body: 'Chemical coagulants are added to the water. These carry a positive charge that neutralizes dissolved contaminants, causing tiny particles to bind together into larger clumps called "floc." The water is stirred so these clumps can form. Problems that were invisible are now visible and removable.'
+    },
+    right: {
+      heading: 'What We Do with Data',
+      items: [
+        '<strong>Provider identity reconciliation:</strong> We validate every provider\'s National Provider Identifier (NPI) and cross-reference against provider directories to confirm who they are, where they practice, and what they specialize in.',
+        '<strong>Service code extraction:</strong> We pull out every billing code and place-of-service code, then break bundled records into individual, queryable entries.',
+        '<strong>Taxonomy-based flagging:</strong> We check whether each rate makes sense for that provider\'s specialty. A surgical billing code linked to a primary care doctor? That\'s an error — flag it.',
+        '<strong>Place-of-service validation:</strong> Inpatient codes should only appear for hospital facilities. We catch mismatches and mark them for removal.',
+        'Like adding coagulants to water — we\'re making the bad data clump together so we can see it and pull it out.'
+      ]
+    }
+  },
+  {
+    num: 3,
+    title: 'Sedimentation',
+    subtitle: 'Removing the obvious junk',
+    qualityWidth: '52%',
+    qualityColor: '#d4a844',
+    qualityLeft: 'Major errors removed',
+    qualityRight: '',
+    left: {
+      heading: 'What Happens with Water',
+      body: 'The water sits in a sedimentation basin where gravity does the work. The heavy floc particles that formed during coagulation settle to the bottom as sludge. The clearer water at the top moves forward. This is a brute-force step — the biggest, most obvious contaminants simply drop out.'
+    },
+    right: {
+      heading: 'What We Do with Data',
+      items: [
+        '<strong>Standardization:</strong> Hospital data and carrier data use completely different formats. We transform both into a single common structure so they can be compared and merged.',
+        '<strong>Placeholder removal:</strong> Some hospitals use dummy values (like 999,999,999) to indicate missing rates. We catch these and strip them out instead of treating them as real prices.',
+        '<strong>Per diem conversion:</strong> Daily hospital rates are converted to total-stay equivalents using average length-of-stay data, so we can compare rates on an apples-to-apples basis.',
+        '<strong>Deduplication:</strong> The same rate often appears multiple times in different formats. We consolidate duplicates using proximity scoring against real claims data.',
+        'The heavy junk settles out. What\'s left is cleaner, but still needs refinement.'
+      ]
+    }
+  },
+  {
+    num: 4,
+    title: 'Filtration',
+    subtitle: 'Merging sources and weighting by real-world usage',
+    qualityWidth: '72%',
+    qualityColor: '#4A9EDA',
+    qualityLeft: 'Cross-validated',
+    qualityRight: '',
+    left: {
+      heading: 'What Happens with Water',
+      body: 'Water passes through layers of fine filters — sand, gravel, and activated carbon — that trap the smaller particles sedimentation missed. This is where precision takes over from brute force. The filters catch what gravity alone could not.'
+    },
+    right: {
+      heading: 'What We Do with Data',
+      items: [
+        '<strong>Carrier + hospital merge:</strong> We bring together the insurer\'s version of a rate and the hospital\'s version. When they agree, confidence goes up. When they don\'t, we flag the discrepancy for investigation.',
+        '<strong>Utilization weighting:</strong> Not all rates are equally important. A rate at a hospital that sees 10,000 patients matters far more than one at a facility that sees 50. We weight every rate by real claims volume.',
+        '<strong>Rate selection:</strong> When multiple sources exist for the same provider and service, we select the most reliable one based on data completeness, source quality, and alignment with what\'s actually being paid in practice.',
+        'Fine-grained filtering — only the rates that reflect real market activity survive this stage.'
+      ]
+    }
+  },
+  {
+    num: 5,
+    title: 'Disinfection',
+    subtitle: 'Quality scoring and confidence testing',
+    qualityWidth: '90%',
+    qualityColor: '#2e9e6b',
+    qualityLeft: 'Trust-scored',
+    qualityRight: '',
+    left: {
+      heading: 'What Happens with Water',
+      body: 'Even after filtration, invisible pathogens can remain. Disinfection — chlorine, UV light, or ozone treatment — kills bacteria, viruses, and parasites that made it through every previous step. This is the final safety gate before the water is declared safe.'
+    },
+    right: {
+      heading: 'What We Do with Data',
+      items: [
+        '<strong>Claims cross-check:</strong> Every rate is compared against actual paid claims data to verify it reflects reality. If a negotiated rate is wildly different from what\'s actually being paid, something is wrong.',
+        '<strong>Confidence scoring:</strong> Each data point receives a trust score from 0 to 100, based on completeness, consistency across sources, alignment with benchmarks, and data freshness.',
+        '<strong>Outlier detection:</strong> Rates that are dramatically out of line with Medicare benchmarks or market peers get flagged for review or exclusion.',
+        'The final safety check. Like killing the last pathogens — we\'re catching the subtle problems that passed through every earlier stage.'
+      ]
+    }
+  },
+  {
+    num: 6,
+    title: 'Storage',
+    subtitle: 'The finished national dataset',
+    qualityWidth: '97%',
+    qualityColor: '#2e9e6b',
+    qualityLeft: 'Production-ready',
+    qualityRight: '',
+    left: {
+      heading: 'What Happens with Water',
+      body: 'Clean, treated water is pumped into storage tanks and water towers. It\'s been tested, certified safe, and sits ready for delivery on demand. The supply is reliable, the quality is verified, and it can reach users whenever they need it.'
+    },
+    right: {
+      heading: 'What We Do with Data',
+      items: [
+        '<strong>Gap filling:</strong> Where coverage gaps remain, we use statistical models to generate estimates — always clearly flagged so users know what\'s directly observed versus modeled.',
+        '<strong>National dataset:</strong> The complete, validated dataset covers hundreds of payers, thousands of providers, and millions of rate records across every U.S. market.',
+        '<strong>Quarterly refresh:</strong> The dataset is updated every quarter with fresh data, so it always reflects current market conditions — not stale pricing from a year ago.',
+        'Clean, trusted, ready to go. The data equivalent of a full water tower.'
+      ]
+    }
+  },
+  {
+    num: 7,
+    title: 'Distribution',
+    subtitle: 'Intelligence delivered to brokers and clients',
+    qualityWidth: '100%',
+    qualityColor: '#0b3d6b',
+    qualityLeft: 'In your hands',
+    qualityRight: '',
+    left: {
+      heading: 'What Happens with Water',
+      body: 'Clean water flows through the distribution network — pipes, pumps, and valves — to reach homes, businesses, and public facilities. The end user turns on the tap and gets safe, clean water without needing to understand the treatment plant behind it.'
+    },
+    right: {
+      heading: 'What We Do with Data',
+      items: [
+        '<strong>Network Navigator:</strong> Brokers analyze negotiated rates for specific procedures, compare carrier networks, and identify cost-saving opportunities — all through an intuitive platform.',
+        '<strong>Custom reporting:</strong> Market-specific analyses, network evaluations, and rate benchmarking delivered in formats that support renewal negotiations and plan design decisions.',
+        '<strong>API access:</strong> For clients who need to integrate data into their own systems, we provide direct data feeds with full documentation.',
+        'You don\'t need to understand the treatment process. You just turn on the tap and get clean, trusted market intelligence.'
+      ]
+    }
+  }
+];
+
+const diagram = document.getElementById('diagram');
+const detailPanel = document.getElementById('detailPanel');
+const hotspots = diagram.querySelectorAll('.hotspot');
+let activeIdx = null;
+
+hotspots.forEach(el => {
+  el.addEventListener('click', () => {
+    const idx = parseInt(el.dataset.stage);
+
+    if (activeIdx === idx) {
+      activeIdx = null;
+      el.classList.remove('active');
+      detailPanel.innerHTML = '';
+      return;
+    }
+
+    hotspots.forEach(h => h.classList.remove('active'));
+    el.classList.add('active');
+    activeIdx = idx;
+
+    const s = stages[idx];
+    detailPanel.innerHTML = `
+      <div class="detail-card visible">
+        <div class="detail-header">
+          <div class="detail-number">${s.num}</div>
+          <div>
+            <h2>${s.title}</h2>
+            <div class="subtitle">${s.subtitle}</div>
+          </div>
+        </div>
+        <div class="detail-body">
+          <div class="detail-section">
+            <h4>${s.left.heading}</h4>
+            <p>${s.left.body}</p>
+          </div>
+          <div class="detail-section">
+            <h4>${s.right.heading}</h4>
+            <ul>${s.right.items.map(i => `<li>${i}</li>`).join('')}</ul>
+          </div>
+          <div class="detail-section quality-section">
+            <h4>Data Quality at This Stage</h4>
+            <div class="quality-bar">
+              <div class="quality-fill" style="width: ${s.qualityWidth}; background: ${s.qualityColor};"></div>
+            </div>
+            <div class="quality-label">
+              <span>${s.qualityLeft}</span>
+              <span>${s.qualityRight}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    detailPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+});
+
+// Click outside diagram to deselect
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.hotspot') && !e.target.closest('.detail-card')) {
+    hotspots.forEach(h => h.classList.remove('active'));
+    activeIdx = null;
+    detailPanel.innerHTML = '';
+  }
+});
+</script>
+
+</body>
+</html>
