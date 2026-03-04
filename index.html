@@ -387,10 +387,10 @@ const stages = [
     right: {
       heading: 'What We Do with Data',
       items: [
-        '<strong>Carrier + hospital merge:</strong> We bring together the insurer\'s version of a rate and the hospital\'s version. When they agree, confidence goes up. When they don\'t, we flag the discrepancy for investigation.',
+        '<strong>Carrier + hospital merge:</strong> We bring together the insurer\'s version of a rate and the hospital\'s version. Where both sources are available, the rate closest to actual claims data is selected per the rate selection logic described below.',
         '<strong>Utilization weighting:</strong> Not all rates are equally important. A rate at a hospital that sees 10,000 patients matters far more than one at a facility that sees 50. We weight every rate by real claims volume.',
-        '<strong>Rate selection:</strong> When multiple sources exist for the same provider and service, we select the most reliable one based on data completeness, source quality, and alignment with what\'s actually being paid in practice.',
-        'Fine-grained filtering — only the rates that reflect real market activity survive this stage.'
+        '<strong>Rate selection:</strong> When multiple sources exist for the same provider and service, we select the most reliable one based on alignment with what\'s actually being paid in practice.',
+        'Fine-grained filtering refines the dataset, though coverage and confidence levels vary by code, market, and utilization data availability.'
       ]
     }
   },
@@ -409,9 +409,9 @@ const stages = [
     right: {
       heading: 'What We Do with Data',
       items: [
-        '<strong>Claims cross-check:</strong> Every rate is compared against actual paid claims data to verify it reflects reality. If a negotiated rate is wildly different from what\'s actually being paid, something is wrong.',
-        '<strong>Confidence scoring:</strong> Each data point receives a trust score from 0 to 100, based on completeness, consistency across sources, alignment with benchmarks, and data freshness.',
-        '<strong>Outlier detection:</strong> Rates that are dramatically out of line with Medicare benchmarks or market peers get flagged for review or exclusion.',
+        '<strong>Claims cross-check:</strong> Every rate is compared against actual claims data to verify it reflects reality. Significant discrepancies between negotiated rates and claims data may indicate data quality issues, though our claims benchmark represents a substantial but not exhaustive view of the market.',
+        '<strong>Outlier detection:</strong> Rates that are dramatically out of line with Medicare benchmarks or actual claims data get flagged for review or exclusion.',
+        '<strong>Confidence scoring:</strong> Each data point receives a confidence score (0, 1, 2, or 3), with each level corresponding to a different degree of data confidence, based on completeness, consistency across sources, and alignment with benchmarks.',
         'The final safety check. Like killing the last pathogens — we\'re catching the subtle problems that passed through every earlier stage.'
       ]
     }
@@ -432,7 +432,7 @@ const stages = [
       heading: 'What We Do with Data',
       items: [
         '<strong>Gap filling:</strong> Where coverage gaps remain, we use statistical models to generate estimates — always clearly flagged so users know what\'s directly observed versus modeled.',
-        '<strong>National dataset:</strong> The complete, validated dataset covers hundreds of payers, thousands of providers, and millions of rate records across every U.S. market.',
+        '<strong>National dataset:</strong> The complete, validated dataset covers dozens of payers, thousands of providers, and millions of rate records across every U.S. market.',
         '<strong>Quarterly refresh:</strong> The dataset is updated every quarter with fresh data, so it always reflects current market conditions — not stale pricing from a year ago.',
         'Clean, trusted, ready to go. The data equivalent of a full water tower.'
       ]
