@@ -1,0 +1,17 @@
+Medical Center,DRG,Source,Reported Rate,% of Medicare,Notes
+NYP / Columbia University Irving,470,Carrier MRF (Aetna),"$76,186",310%,Base DRG — consistent with other carriers
+NYP / Columbia University Irving,470,Carrier MRF (Cigna),"$77,939",317%,Base DRG — consistent with other carriers
+NYP / Columbia University Irving,470,Hospital MRF,"$94,044",383%,Likely includes outlier amount
+NYP / Columbia University Irving,470,TH Normalized,"$77,100",314%,After statistical controls
+Yale New Haven Hospital,470,Carrier MRF (Aetna),"$37,770",245%,Base DRG — consistent with other carriers
+Yale New Haven Hospital,470,Carrier MRF (Cigna),"$38,289",248%,Base DRG — consistent with other carriers
+Yale New Haven Hospital,470,Hospital MRF,"$13,835",90%,Anomalous — may reflect partial or non-standard reporting
+Yale New Haven Hospital,470,TH Normalized,"$38,000",246%,After statistical controls
+UCI Medical Center,470,Carrier MRF (Aetna),"$23,778",185%,Base DRG — consistent with other carriers
+UCI Medical Center,470,Carrier MRF (Cigna),"$25,100",195%,Base DRG — consistent with other carriers
+UCI Medical Center,470,Hospital MRF,"$97,873",762%,Likely includes outlier amount
+UCI Medical Center,470,TH Normalized,"$24,400",190%,After statistical controls
+Duke University Hospital,470,Carrier MRF (Aetna),"$35,010",252%,Base DRG — consistent with other carriers
+Duke University Hospital,470,Carrier MRF (BCBS NC),"$38,222",275%,Base DRG — consistent with other carriers
+Duke University Hospital,470,Hospital MRF,"$13,800",99%,Anomalous — may reflect partial or non-standard reporting
+Duke University Hospital,470,TH Normalized,"$36,600",263%,After statistical controls

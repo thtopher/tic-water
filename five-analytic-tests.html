@@ -969,22 +969,22 @@
       </div>
     </section>
 
-    <!-- ═══════ SLIDE 4: TEST D — THE INPATIENT REALITY CHECK ═══════ -->
-    <section class="slide test-slide" role="group" aria-roledescription="slide" aria-label="Test D: The Inpatient Reality Check" data-slug="inpatient-reality-check">
+    <!-- ═══════ SLIDE 4: TEST D — THE INPATIENT OUTLIER CHECK ═══════ -->
+    <section class="slide test-slide" role="group" aria-roledescription="slide" aria-label="Test D: The Inpatient Outlier Check" data-slug="inpatient-outlier-check">
       <div class="slide-header">
         <span class="test-label">Test D</span>
-        <h2>The Inpatient Reality Check</h2>
-        <p class="hook-question">Does your data actually contain real DRG-level negotiated rates from major academic medical centers?</p>
+        <h2>The Inpatient Outlier Check</h2>
+        <p class="hook-question">Does your data contain DRG-based inpatient payments for facility comparisons?</p>
       </div>
 
       <div class="split-panel">
         <div class="panel-card challenge-card">
           <h3>The Challenge</h3>
-          <p>Inpatient pricing is where the biggest dollars are, yet many transparency data vendors struggle with DRG-level rates. The facility case rate for a joint replacement at an academic medical center can range from $14,000 to nearly $100,000 depending on the payer. If your data lacks DRG rates or shows only a single number with no payer variation, the most impactful cost conversations cannot happen.</p>
+          <p>There is variance in how price transparency machine-readable files (MRF) report inpatient rates. Carrier MRF rates often reflect base DRG payments. The tell is there is consistency in % of Medicare. Hospital MRF rates may or may not reflect base DRG payments, and may include the outlier amount. This creates inconsistent DRG rates and distorted apples-to-apples comparisons across hospitals and carriers.</p>
         </div>
         <div class="panel-card solution-card">
           <h3>How We Address It</h3>
-          <p>Third Horizon captures DRG-level negotiated rates directly from payer Transparency in Coverage files, maintaining the full rate range and carrier attribution. For each facility and DRG combination, we report the total record count, rate dispersion (min, max, median), and which carrier networks are represented &mdash; giving a complete view of the negotiated landscape.</p>
+          <p>Third Horizon uses multiple data layers and statistical controls to normalize DRG rates to the base DRG rate. Komodo claims data provides a reference layer, since real claims include both base payments and outlier adjustments. We also apply median and percentile-based filtering to remove extreme values.</p>
         </div>
       </div>
 
@@ -1049,7 +1049,7 @@
 
       <div class="implication">
         <h3>Why It Matters</h3>
-        <p>The rate range for a single DRG at one academic medical center can span $74,000 (UCI: $23.8K to $97.9K) depending on the carrier. This kind of variation is invisible without real DRG-level data across multiple payers &mdash; and it is exactly the insight that drives informed network and plan design decisions for employers with high-acuity populations.</p>
+        <p>Outlier-driven values have minimal influence, ensuring the captured DRG rate accurately represents the base DRG payment for comparison purposes.</p>
       </div>
 
       <div class="expandable-section" aria-label="Additional detail for Test D">
