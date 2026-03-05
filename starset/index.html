@@ -209,21 +209,21 @@
        TREATMENT VIEW (water diagram)
        ════════════════════════════════════════ */
 
-    /* Header */
-    #treatment-view header {
+    /* Header (shared across views) */
+    .content-view header {
       background: linear-gradient(135deg, #2D1B4E 0%, #4A2D7A 100%);
       padding: 1.75rem 2rem 1.5rem;
       padding-left: 4rem;
       text-align: center;
     }
-    #treatment-view header h1 {
+    .content-view header h1 {
       color: var(--foam);
       font-size: 1.5rem;
       font-weight: 600;
       letter-spacing: -0.02em;
       margin-bottom: 0.25rem;
     }
-    #treatment-view header p {
+    .content-view header p {
       color: var(--water-pale);
       font-size: 0.9rem;
     }
@@ -1010,13 +1010,17 @@
   <!-- ──────── ANALYTIC TESTS VIEW ──────── -->
   <div id="analytic-tests-view" class="content-view">
 
+    <header>
+      <h1>5 Analytic Tests</h1>
+      <p>Starset Analytics — Price Transparency Knowledge Brief</p>
+    </header>
+
     <div id="slideAnnounce" aria-live="polite" aria-atomic="true" class="sr-only"></div>
 
     <main id="deck" class="deck" role="region" aria-roledescription="presentation" aria-label="5 Analytic Tests Your Price Transparency Data Should Pass">
 
       <!-- SLIDE 0: TITLE -->
       <section class="slide title-slide" role="group" aria-roledescription="slide" aria-label="Title slide" data-slug="title">
-        <p class="kicker">Starset Analytics &mdash; Price Transparency Knowledge Brief</p>
         <h1>5 Tests Your Price Transparency Data Should Pass</h1>
         <p class="subtitle">How do you know your rate data is real, complete, and trustworthy?</p>
         <p class="setup">
