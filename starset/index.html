@@ -1,0 +1,1918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Treatment Process — Starset Analytics</title>
+  <link rel="icon" type="image/png" href="starset-analytics-favicon.png">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Fira+Sans:wght@400;500;600;700&display=swap');
+
+    :root {
+      /* Starset palette */
+      --starset-coral: #F99062;
+      --starset-pink: #F274BA;
+      --starset-magenta: #E17AD1;
+      --starset-purple: #D07FE5;
+      --starset-violet: #BD85FC;
+      --starset-lavender: #B385FB;
+      --starset-periwinkle: #9D8AFA;
+      --starset-blue: #838CF8;
+
+      /* Water diagram remapped */
+      --water-deep: #2D1B4E;
+      --water-mid: #9D8AFA;
+      --water-light: #BD85FC;
+      --water-pale: #EDE5FB;
+      --water-tint: #F5F0FF;
+      --foam: #ffffff;
+      --clean: #2e9e6b;
+      --text-primary: #1a1028;
+      --text-secondary: #4a3a6a;
+      --text-muted: #7a6a9a;
+      --shadow: rgba(45, 27, 78, 0.15);
+      --shadow-strong: rgba(45, 27, 78, 0.25);
+
+      /* Five-analytic-tests remapped */
+      --primary: #6B21A8;
+      --primary-dark: #2D1B4E;
+      --secondary: #9D8AFA;
+      --accent: #F99062;
+      --bg: #F5F0FF;
+      --text: #3B1861;
+      --text-light: #6B5B8A;
+      --surface: #FFFFFF;
+      --muted: #EDE5FB;
+      --border: #D4C4F0;
+      --detail-bg: #F8F4FF;
+      --detail-border: #D4C4F0;
+      --focus: #1a1028;
+      --shadow-fat: 0 14px 34px rgba(107, 33, 168, 0.16);
+      --shadow-sm: 0 4px 12px rgba(107, 33, 168, 0.08);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --transition: 180ms ease;
+      --challenge-bg: #FEF3C7;
+      --challenge-border: #FCD34D;
+      --challenge-text: #92400E;
+      --solution-bg: #D1FAE5;
+      --solution-border: #6EE7B7;
+      --solution-text: #065F46;
+
+      /* Drawer */
+      --drawer-width: 280px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Fira Sans', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #F0EBF5;
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ════════════════════════════════════════
+       DRAWER
+       ════════════════════════════════════════ */
+    .drawer-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(26, 16, 40, 0.45);
+      z-index: 998;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .drawer-overlay.visible {
+      display: block;
+      opacity: 1;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: var(--drawer-width);
+      height: 100vh;
+      background: linear-gradient(180deg, #2D1B4E 0%, #1a1028 100%);
+      z-index: 999;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.3);
+    }
+    .drawer.open {
+      transform: translateX(0);
+    }
+
+    .drawer-logo {
+      padding: 1.5rem 1.25rem 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      text-align: center;
+    }
+    .drawer-logo img {
+      max-width: 180px;
+      height: auto;
+    }
+
+    .drawer-nav {
+      flex: 1;
+      padding: 1rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .drawer-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0.85rem 1.25rem;
+      color: rgba(255,255,255,0.7);
+      font-size: 0.92rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+    }
+    .drawer-nav-item:hover {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+    }
+    .drawer-nav-item.active {
+      background: rgba(249, 144, 98, 0.2);
+      color: var(--starset-coral);
+      border-left: 3px solid var(--starset-coral);
+      padding-left: calc(1.25rem - 3px);
+    }
+    .drawer-footer {
+      padding: 1rem 1.25rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.35);
+      font-size: 0.72rem;
+      text-align: center;
+    }
+
+    /* ════════════════════════════════════════
+       HAMBURGER BUTTON
+       ════════════════════════════════════════ */
+    .hamburger {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 1000;
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      border: none;
+      background: var(--water-deep);
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      box-shadow: 0 2px 12px rgba(45, 27, 78, 0.3);
+      transition: background 0.2s, transform 0.2s;
+    }
+    .hamburger:hover {
+      background: #4A2D7A;
+      transform: scale(1.05);
+    }
+    .hamburger.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ════════════════════════════════════════
+       MAIN CONTENT
+       ════════════════════════════════════════ */
+    .main-content {
+      transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .content-view {
+      display: none;
+    }
+    .content-view.active {
+      display: block;
+    }
+
+    /* ════════════════════════════════════════
+       TREATMENT VIEW (water diagram)
+       ════════════════════════════════════════ */
+
+    /* Header */
+    #treatment-view header {
+      background: linear-gradient(135deg, #2D1B4E 0%, #4A2D7A 100%);
+      padding: 1.75rem 2rem 1.5rem;
+      padding-left: 4rem;
+      text-align: center;
+    }
+    #treatment-view header h1 {
+      color: var(--foam);
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.25rem;
+    }
+    #treatment-view header p {
+      color: var(--water-pale);
+      font-size: 0.9rem;
+    }
+
+    /* Diagram */
+    .diagram-wrapper {
+      max-width: 1400px;
+      margin: 2rem auto 0;
+      padding: 0 1rem;
+    }
+    .diagram-container {
+      position: relative;
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px var(--shadow);
+    }
+    .diagram-container img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /* Hotspots */
+    .hotspot {
+      position: absolute;
+      cursor: pointer;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+      z-index: 2;
+    }
+    .hotspot:hover,
+    .hotspot.active {
+      border-color: var(--starset-coral);
+      background: rgba(249, 144, 98, 0.1);
+      box-shadow: 0 0 20px rgba(249, 144, 98, 0.25);
+    }
+    .hotspot.active {
+      border-color: var(--starset-coral);
+      background: rgba(249, 144, 98, 0.15);
+      box-shadow: 0 0 24px rgba(249, 144, 98, 0.35);
+    }
+
+    .hotspot::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 12px;
+      border: 2px solid var(--starset-violet);
+      opacity: 0;
+      animation: hintPulse 3s ease-in-out infinite;
+    }
+    .hotspot:hover::after,
+    .hotspot.active::after {
+      animation: none;
+      opacity: 0;
+    }
+    @keyframes hintPulse {
+      0%, 100% { opacity: 0; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.02); }
+    }
+    .hotspot:nth-child(1)::after { animation-delay: 0s; }
+    .hotspot:nth-child(2)::after { animation-delay: 0.4s; }
+    .hotspot:nth-child(3)::after { animation-delay: 0.8s; }
+    .hotspot:nth-child(4)::after { animation-delay: 1.2s; }
+    .hotspot:nth-child(5)::after { animation-delay: 1.6s; }
+    .hotspot:nth-child(6)::after { animation-delay: 2.0s; }
+    .hotspot:nth-child(7)::after { animation-delay: 2.4s; }
+
+    /* Click hint */
+    .click-hint {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      margin: 1rem 0 0.5rem;
+      animation: fade 3s ease-in-out infinite;
+    }
+    @keyframes fade {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+
+    /* Detail Panel */
+    .detail-panel {
+      max-width: 1400px;
+      margin: 1.25rem auto 2.5rem;
+      padding: 0 1rem;
+    }
+    .detail-card {
+      background: var(--foam);
+      border-radius: 14px;
+      box-shadow: 0 4px 16px var(--shadow);
+      overflow: hidden;
+      display: none;
+      animation: slideUp 0.3s ease;
+    }
+    .detail-card.visible { display: block; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .detail-header {
+      background: linear-gradient(135deg, #2D1B4E, #4A2D7A);
+      padding: 1.25rem 1.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .detail-number {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      color: var(--foam);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .detail-header h2 {
+      color: var(--foam);
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+    .detail-header .subtitle {
+      color: var(--water-pale);
+      font-size: 0.82rem;
+      margin-top: 0.1rem;
+    }
+
+    .detail-body {
+      padding: 1.5rem 1.75rem 1.75rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    .detail-section h4 {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+    }
+    .detail-section p {
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+    .detail-section ul {
+      list-style: none;
+      padding: 0;
+    }
+    .detail-section ul li {
+      font-size: 0.86rem;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      padding: 0.25rem 0 0.25rem 1.1rem;
+      position: relative;
+    }
+    .detail-section ul li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.6rem;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--starset-violet);
+    }
+    .detail-section ul li strong {
+      color: var(--text-primary);
+    }
+
+    /* Quality bar */
+    .quality-section {
+      grid-column: 1 / -1;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--water-pale);
+    }
+    .quality-bar {
+      margin-top: 0.3rem;
+      height: 6px;
+      background: #e0d8ec;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .quality-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.8s ease;
+    }
+    .quality-label {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.2rem;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    /* Treatment footer */
+    #treatment-view footer {
+      text-align: center;
+      padding: 1.5rem 1rem 2rem;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+    }
+    #treatment-view footer strong { color: var(--text-secondary); }
+
+
+    /* ════════════════════════════════════════
+       ANALYTIC TESTS VIEW
+       ════════════════════════════════════════ */
+
+    .skip-link {
+      position: absolute;
+      left: -9999px;
+      top: 0;
+    }
+
+    /* Slide Nav Bar */
+    .slide-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      box-shadow: 0 -4px 16px rgba(107, 33, 168, 0.06);
+    }
+    #analytic-tests-view.active ~ .slide-nav,
+    .slide-nav.tests-active {
+      display: flex;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--primary);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background var(--transition), border-color var(--transition);
+    }
+    .nav-btn:hover {
+      background: var(--muted);
+      border-color: var(--secondary);
+    }
+    .nav-btn:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+    .nav-btn:disabled:hover {
+      background: var(--surface);
+      border-color: var(--border);
+    }
+
+    .nav-dots {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .nav-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+      transition: background var(--transition), border-color var(--transition), transform var(--transition);
+    }
+    .nav-dot:hover {
+      border-color: var(--secondary);
+      transform: scale(1.2);
+    }
+    .nav-dot.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      transform: scale(1.2);
+    }
+
+    .slide-counter {
+      font-family: "Fira Code", monospace;
+      font-size: 0.8rem;
+      color: var(--text-light);
+      margin: 0 8px;
+      min-width: 44px;
+      text-align: center;
+    }
+
+    .nav-btn:focus-visible,
+    .nav-dot:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    /* Slide System */
+    .deck {
+      min-height: 100vh;
+      padding-bottom: 70px;
+    }
+
+    .slide {
+      display: none;
+      width: min(1100px, 92vw);
+      margin: 0 auto;
+      padding: 40px 0 32px;
+      min-height: calc(100vh - 70px);
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity var(--transition), transform var(--transition);
+    }
+
+    .slide.active {
+      display: flex;
+      flex-direction: column;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Title Slide */
+    .title-slide {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    .title-slide .kicker {
+      font: 500 0.9rem/1.2 "Fira Code", monospace;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 0 0 16px;
+    }
+    .title-slide h1 {
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      line-height: 1.15;
+      color: var(--primary-dark);
+      margin: 0 0 16px;
+      max-width: 18ch;
+    }
+    .title-slide .subtitle {
+      font-size: clamp(1rem, 1.8vw, 1.2rem);
+      color: var(--text-light);
+      margin: 0 0 32px;
+      max-width: 50ch;
+    }
+    .title-slide .setup {
+      font-size: 1rem;
+      color: var(--text);
+      margin: 0;
+      max-width: 60ch;
+      line-height: 1.7;
+    }
+    .title-slide .attribution {
+      margin-top: 48px;
+      font: 500 0.82rem/1.4 "Fira Code", monospace;
+      color: var(--text-light);
+      letter-spacing: 0.02em;
+    }
+
+    /* Test Slide */
+    .test-slide { gap: 0; }
+
+    .slide-header { margin-bottom: 20px; }
+    .slide-header .test-label {
+      display: inline-block;
+      font: 500 0.78rem/1.2 "Fira Code", monospace;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 0 0 8px;
+      padding: 3px 10px;
+      background: var(--muted);
+      border-radius: 999px;
+    }
+    .slide-header h2 {
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      line-height: 1.2;
+      color: var(--primary-dark);
+      margin: 0 0 6px;
+    }
+    .slide-header .hook-question {
+      font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+      color: var(--text-light);
+      margin: 0;
+      font-style: italic;
+      max-width: 65ch;
+    }
+
+    /* Challenge / Solution */
+    .split-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .panel-card {
+      padding: 16px 18px;
+      border-radius: var(--radius-sm);
+      border: 1px solid;
+    }
+    .panel-card h3 {
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin: 0 0 8px;
+    }
+    .panel-card p {
+      margin: 0;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+    .challenge-card {
+      background: var(--challenge-bg);
+      border-color: var(--challenge-border);
+    }
+    .challenge-card h3 { color: var(--challenge-text); }
+    .challenge-card p { color: #78350F; }
+    .solution-card {
+      background: var(--solution-bg);
+      border-color: var(--solution-border);
+    }
+    .solution-card h3 { color: var(--solution-text); }
+    .solution-card p { color: #064E3B; }
+
+    /* Evidence Table */
+    .evidence-section { margin-bottom: 16px; }
+    .evidence-section .section-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary);
+      margin: 0 0 10px;
+    }
+    .evidence-wrap {
+      border: 1px solid var(--detail-border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      overflow-x: auto;
+      box-shadow: var(--shadow-sm);
+    }
+    .evidence-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .evidence-table caption {
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      color: var(--text-light);
+      border-bottom: 1px solid var(--detail-border);
+      background: var(--detail-bg);
+    }
+    .evidence-table th {
+      text-align: left;
+      padding: 8px 14px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      border-bottom: 2px solid var(--primary);
+      white-space: nowrap;
+    }
+    .evidence-table td {
+      padding: 8px 14px;
+      border-bottom: 1px solid #E2D8F0;
+      color: var(--text);
+    }
+    .evidence-table tbody tr:last-child td { border-bottom: none; }
+    .evidence-table tbody tr:hover { background: #F5F0FF; }
+    .evidence-table .num {
+      text-align: right;
+      font-family: "Fira Code", monospace;
+      font-size: 0.84rem;
+    }
+    .evidence-table .highlight-row {
+      background: #EDE5FB;
+      font-weight: 500;
+    }
+    .evidence-table .absent {
+      color: #DC2626;
+      font-style: italic;
+    }
+    .evidence-table .present {
+      color: #059669;
+    }
+
+    /* Grouped table styles (Test D) */
+    .grouped-table .group-start td {
+      border-top: 2px solid var(--secondary);
+    }
+    .grouped-table td[rowspan] {
+      vertical-align: middle;
+      font-weight: 600;
+      background: var(--surface);
+    }
+    .grouped-table .highlight-row td {
+      background: #FEF3C7;
+      color: #92400E;
+      font-weight: 600;
+    }
+    .grouped-table .normalized-row td {
+      background: #ECFDF5;
+    }
+
+    .evidence-table .flag {
+      display: inline-block;
+      padding: 1px 8px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .flag-case-rate { background: #EDE5FB; color: #6B21A8; }
+    .flag-insufficient { background: #FEF3C7; color: #92400E; }
+    .flag-base { background: #D1FAE5; color: #065F46; }
+
+    .table-footer {
+      padding: 8px 14px;
+      font-size: 0.78rem;
+      color: var(--text-light);
+      border-top: 1px solid var(--detail-border);
+      background: var(--detail-bg);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* Why It Matters */
+    .implication {
+      padding: 12px 16px;
+      border-left: 4px solid var(--accent);
+      background: #FFFBEB;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      margin-bottom: 16px;
+    }
+    .implication h3 {
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #92400E;
+      margin: 0 0 4px;
+    }
+    .implication p {
+      margin: 0;
+      font-size: 0.95rem;
+      color: #78350F;
+      line-height: 1.6;
+    }
+
+    /* Expandable */
+    .expandable-section { display: none; }
+    .expandable-section[data-has-detail="true"] { display: block; }
+    .expandable-section details {
+      border: 1px solid var(--detail-border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .expandable-section summary {
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: var(--primary);
+      background: var(--detail-bg);
+      list-style: none;
+      user-select: none;
+    }
+    .expandable-section summary::-webkit-details-marker { display: none; }
+    .expandable-section summary::before {
+      content: "\25B6";
+      display: inline-block;
+      margin-right: 8px;
+      font-size: 0.7em;
+      transition: transform var(--transition);
+    }
+    .expandable-section details[open] > summary::before {
+      transform: rotate(90deg);
+    }
+
+    /* CTA Slide */
+    .cta-slide {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    .cta-slide h2 {
+      font-size: clamp(1.5rem, 3.5vw, 2.4rem);
+      color: var(--primary-dark);
+      margin: 0 0 20px;
+      max-width: 22ch;
+      line-height: 1.2;
+    }
+    .cta-slide .summary-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      text-align: left;
+      max-width: 48ch;
+    }
+    .cta-slide .summary-list li {
+      padding: 10px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .cta-slide .summary-list li strong {
+      color: var(--primary-dark);
+    }
+    .cta-slide .cta-prompt {
+      font-size: clamp(1rem, 1.8vw, 1.2rem);
+      color: var(--text-light);
+      margin: 0 0 12px;
+      font-style: italic;
+    }
+    .cta-slide .contact-placeholder {
+      font: 500 0.88rem/1.4 "Fira Code", monospace;
+      color: var(--primary);
+    }
+    .cta-slide .attribution {
+      margin-top: 48px;
+      font: 500 0.78rem/1.4 "Fira Code", monospace;
+      color: var(--text-light);
+    }
+
+    /* Screen reader only */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* ════════════════════════════════════════
+       RESPONSIVE
+       ════════════════════════════════════════ */
+    @media (min-width: 1024px) {
+      .drawer.open ~ .main-content {
+        margin-left: var(--drawer-width);
+      }
+      .drawer-overlay { display: none !important; }
+    }
+
+    @media (max-width: 1023px) {
+      /* Drawer overlays on mobile */
+      .drawer.open ~ .main-content {
+        margin-left: 0;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .detail-body {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      #treatment-view header h1 { font-size: 1.2rem; }
+
+      .split-panel {
+        grid-template-columns: 1fr;
+      }
+      .slide {
+        padding: 24px 0 24px;
+      }
+      .evidence-table th,
+      .evidence-table td {
+        padding: 6px 10px;
+        font-size: 0.82rem;
+      }
+    }
+
+    /* Print */
+    @media print {
+      .drawer, .hamburger, .drawer-overlay, .slide-nav { display: none !important; }
+      .main-content { margin-left: 0 !important; }
+      body { background: white; }
+    }
+
+    /* Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════ HAMBURGER ════════ -->
+<button class="hamburger" id="hamburgerBtn" aria-label="Open navigation menu">&#9776;</button>
+
+<!-- ════════ DRAWER OVERLAY ════════ -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+
+<!-- ════════ DRAWER ════════ -->
+<aside class="drawer" id="drawer">
+  <div class="drawer-logo">
+    <img src="starset-analytics-stacked-whitetype.png" alt="Starset Analytics">
+  </div>
+  <nav class="drawer-nav">
+    <button class="drawer-nav-item active" data-view="treatment-view">
+      Data Treatment Process
+    </button>
+    <button class="drawer-nav-item" data-view="analytic-tests-view">
+      5 Analytic Tests
+    </button>
+  </nav>
+  <div class="drawer-footer">
+    Starset Analytics
+  </div>
+</aside>
+
+<!-- ════════ MAIN CONTENT ════════ -->
+<div class="main-content" id="mainContent">
+
+  <!-- ──────── TREATMENT VIEW ──────── -->
+  <div id="treatment-view" class="content-view active">
+    <header>
+      <h1>How We Turn Raw Data Into Trusted Intelligence</h1>
+      <p>Starset Analytics — Data Treatment Process</p>
+    </header>
+
+    <div class="click-hint">Click any stage on the diagram to see what we do at each step</div>
+
+    <div class="diagram-wrapper">
+      <div class="diagram-container" id="diagram">
+        <img src="../water-treatment2.png" alt="Water Treatment Process Diagram" />
+
+        <div class="hotspot" data-stage="0" style="left: 24.7%; top: 14.9%; width: 12.0%; height: 25.9%;"></div>
+        <div class="hotspot" data-stage="1" style="left: 42.1%; top: 19.5%; width: 11.6%; height: 21.1%;"></div>
+        <div class="hotspot" data-stage="2" style="left: 57.3%; top: 21.3%; width: 16.1%; height: 19.8%;"></div>
+        <div class="hotspot" data-stage="3" style="left: 77.5%; top: 13.5%; width: 10.8%; height: 26.1%;"></div>
+        <div class="hotspot" data-stage="4" style="left: 76.2%; top: 63.9%; width: 13.3%; height: 21.7%;"></div>
+        <div class="hotspot" data-stage="5" style="left: 59.3%; top: 60.1%; width: 8.6%; height: 26.3%;"></div>
+        <div class="hotspot" data-stage="6" style="left: 30.8%; top: 62.5%; width: 20.6%; height: 24.8%;"></div>
+      </div>
+    </div>
+
+    <div class="detail-panel" id="detailPanel"></div>
+
+    <footer>
+      <strong>Starset Analytics</strong> — Data Treatment Process
+    </footer>
+  </div>
+
+  <!-- ──────── ANALYTIC TESTS VIEW ──────── -->
+  <div id="analytic-tests-view" class="content-view">
+
+    <div id="slideAnnounce" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+
+    <main id="deck" class="deck" role="region" aria-roledescription="presentation" aria-label="5 Analytic Tests Your Price Transparency Data Should Pass">
+
+      <!-- SLIDE 0: TITLE -->
+      <section class="slide title-slide" role="group" aria-roledescription="slide" aria-label="Title slide" data-slug="title">
+        <p class="kicker">Starset Analytics &mdash; Price Transparency Knowledge Brief</p>
+        <h1>5 Tests Your Price Transparency Data Should Pass</h1>
+        <p class="subtitle">How do you know your rate data is real, complete, and trustworthy?</p>
+        <p class="setup">
+          Transparency in Coverage data is now publicly available from every major health insurer. But raw MRF files
+          are massive, messy, and full of traps that produce misleading results if not treated properly. These five
+          analytic tests represent the most common data quality challenges we encounter &mdash; and how Starset Analytics
+          addresses each one to deliver intelligence you can act on with confidence.
+        </p>
+        <p class="attribution">Starset Analytics</p>
+      </section>
+
+      <!-- SLIDE 1: TEST A -->
+      <section class="slide test-slide" role="group" aria-roledescription="slide" aria-label="Test A: The Modifier Trap" data-slug="modifier-trap">
+        <div class="slide-header">
+          <span class="test-label">Test A</span>
+          <h2>The Modifier Trap</h2>
+          <p class="hook-question">Can your data vendor actually separate the professional and technical components of a radiology charge?</p>
+        </div>
+        <div class="split-panel">
+          <div class="panel-card challenge-card">
+            <h3>The Challenge</h3>
+            <p>A CT Head/Brain (CPT 70450) has two distinct cost components: the physician's interpretation (Modifier -26) and the facility's technical work (Modifier -TC). Many data sources return a single blended rate with no modifier separation, making it impossible to compare professional fees independently or understand the true facility cost.</p>
+          </div>
+          <div class="panel-card solution-card">
+            <h3>How We Address It</h3>
+            <p>Our Transparency in Coverage data preserves every modifier and place-of-service combination published in the payer files. For each provider and billing code, we separate the global rate, professional component (-26), and technical component (-TC) as distinct records, enabling accurate comparison at each level.</p>
+          </div>
+        </div>
+        <div class="evidence-section">
+          <p class="section-label">The Evidence</p>
+          <div class="evidence-wrap">
+            <table class="evidence-table">
+              <caption>CPT 70450 (CT Head/Brain) &mdash; New York, Aetna Choice POS &mdash; Selected providers by volume</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Provider</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Modifier</th>
+                  <th scope="col" class="num">Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Crouse Health Hospital</td>
+                  <td>Hospital</td>
+                  <td>Global</td>
+                  <td class="num">$144.64</td>
+                </tr>
+                <tr>
+                  <td>Crouse Health Hospital</td>
+                  <td>Hospital</td>
+                  <td>-26 (Professional)</td>
+                  <td class="num">$53.86</td>
+                </tr>
+                <tr>
+                  <td>Crouse Health Hospital</td>
+                  <td>Hospital</td>
+                  <td>-TC (Technical)</td>
+                  <td class="num">$90.79 &ndash; $163.44</td>
+                </tr>
+                <tr class="highlight-row">
+                  <td>Albany Medical Center</td>
+                  <td>Hospital</td>
+                  <td>Global</td>
+                  <td class="num">$243.79</td>
+                </tr>
+                <tr>
+                  <td>Albany Medical Center</td>
+                  <td>Hospital</td>
+                  <td>-26 (Professional)</td>
+                  <td class="num">$90.57</td>
+                </tr>
+                <tr>
+                  <td>Albany Medical Center</td>
+                  <td>Hospital</td>
+                  <td>-TC (Technical)</td>
+                  <td class="num">$153.22</td>
+                </tr>
+                <tr>
+                  <td>Steven Lev, MD</td>
+                  <td>Radiologist</td>
+                  <td>-26 (Professional)</td>
+                  <td class="num">$48.16</td>
+                </tr>
+                <tr>
+                  <td>Empire State Radiology</td>
+                  <td>Radiologist</td>
+                  <td>-26 (Professional)</td>
+                  <td class="num">$42.55 &ndash; $58.84</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="table-footer">
+              <span>Source: Starset Analytics TiC data, Aetna Choice POS</span>
+              <span>Data as of Q4 2025</span>
+            </div>
+          </div>
+        </div>
+        <div class="implication">
+          <h3>Why It Matters</h3>
+          <p>Without modifier separation, brokers cannot isolate the physician interpretation fee from the facility cost. This matters for network comparison, fee schedule benchmarking, and any analysis where professional and technical costs need to be evaluated independently.</p>
+        </div>
+        <div class="expandable-section" aria-label="Additional detail for Test A">
+          <details>
+            <summary>See full data</summary>
+            <p style="padding: 14px; color: var(--text-light);">Full evidence panel will be available in a future update.</p>
+          </details>
+        </div>
+      </section>
+
+      <!-- SLIDE 2: TEST B -->
+      <section class="slide test-slide" role="group" aria-roledescription="slide" aria-label="Test B: The Site of Service Trap" data-slug="site-of-service-trap">
+        <div class="slide-header">
+          <span class="test-label">Test B</span>
+          <h2>The Site of Service Trap</h2>
+          <p class="hook-question">Does your data reflect the negotiated rate difference when the same surgeon operates at a hospital versus an ambulatory surgery center?</p>
+        </div>
+        <div class="split-panel">
+          <div class="panel-card challenge-card">
+            <h3>The Challenge</h3>
+            <p>A total knee arthroplasty (CPT 27447) performed by the same surgeon can cost dramatically different amounts depending on where it takes place. If a data source ignores place-of-service codes or conflates hospital and ASC settings, the rate comparison is meaningless and the cost-saving opportunity in site-of-service steering is invisible.</p>
+          </div>
+          <div class="panel-card solution-card">
+            <h3>How We Address It</h3>
+            <p>Our data preserves the place-of-service code for every rate record, as required by the CMS Transparency in Coverage schema. For each provider, we maintain separate rate entries for Hospital (POS 21/22) and ASC (POS 24), enabling direct facility-type comparison for the same surgeon and procedure.</p>
+          </div>
+        </div>
+        <div class="evidence-section">
+          <p class="section-label">The Evidence</p>
+          <div class="evidence-wrap">
+            <table class="evidence-table">
+              <caption>CPT 27447 (Total Knee Arthroplasty) &mdash; Michigan, BCBS Blue Preferred &amp; Cigna PPO &mdash; Top orthopedic surgeons by volume</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Surgeon</th>
+                  <th scope="col">Carrier</th>
+                  <th scope="col">POS 21/22 (Hospital)</th>
+                  <th scope="col">POS 24 (ASC)</th>
+                  <th scope="col">Rate Type</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Jeffrey W. Devitt, MD</td>
+                  <td>BCBS MI</td>
+                  <td class="num">$2,274.87</td>
+                  <td class="num">$2,274.87</td>
+                  <td>Facility</td>
+                </tr>
+                <tr>
+                  <td>Jeffrey W. Devitt, MD</td>
+                  <td>Cigna PPO</td>
+                  <td class="num">$1,677.10</td>
+                  <td class="num">$1,677.10</td>
+                  <td>Facility</td>
+                </tr>
+                <tr class="highlight-row">
+                  <td>Eric T. Silberg, MD</td>
+                  <td>BCBS MI</td>
+                  <td class="num">$2,274.87</td>
+                  <td class="num">$2,274.87</td>
+                  <td>Facility</td>
+                </tr>
+                <tr>
+                  <td>Creg A. Carpenter, MD</td>
+                  <td>BCBS MI</td>
+                  <td class="num">$2,274.87</td>
+                  <td class="num">$2,274.87</td>
+                  <td>Facility</td>
+                </tr>
+                <tr>
+                  <td>Ortho Assoc. of Muskegon</td>
+                  <td>BCBS MI</td>
+                  <td class="num">$2,274.87</td>
+                  <td class="num">$2,274.87</td>
+                  <td>Facility</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="table-footer">
+              <span>Source: Starset Analytics TiC data, BCBS MI Blue Preferred &amp; Cigna PPO</span>
+              <span>Data as of Q4 2025</span>
+            </div>
+          </div>
+        </div>
+        <div class="implication">
+          <h3>Why It Matters</h3>
+          <p>In this sample, professional rates are identical across all three facility-based settings &mdash; which is consistent with how facility rates work in the Medicare fee schedule. The key insight is not the rate difference here, but that the data <em>captures the distinction</em>. When rates do differ by site of service (as they frequently do for facility fees), our data makes that visible rather than hiding it behind a single blended number.</p>
+        </div>
+        <div class="expandable-section" aria-label="Additional detail for Test B">
+          <details>
+            <summary>See full data</summary>
+            <p style="padding: 14px; color: var(--text-light);">Full evidence panel will be available in a future update.</p>
+          </details>
+        </div>
+      </section>
+
+      <!-- SLIDE 3: TEST C -->
+      <section class="slide test-slide" role="group" aria-roledescription="slide" aria-label="Test C: The Ghost Rate Check" data-slug="ghost-rate-check">
+        <div class="slide-header">
+          <span class="test-label">Test C</span>
+          <h2>The Ghost Rate Check</h2>
+          <p class="hook-question">If you pull a rate for heart surgery from a psychiatrist's file, should you trust it?</p>
+        </div>
+        <div class="split-panel">
+          <div class="panel-card challenge-card">
+            <h3>The Challenge</h3>
+            <p>Raw MRF files often contain "ghost rates" &mdash; negotiated rates listed for services a provider would never actually perform. A pathologist with a CABG surgery rate or a psychiatrist with an orthopedic fee creates noise that pollutes network comparisons. Blindly pulling rates without specialty context produces data of questionable validity.</p>
+          </div>
+          <div class="panel-card solution-card">
+            <h3>How We Address It</h3>
+            <p>Starset Analytics cross-references every rate against national claims data (Komodo) to validate that sufficient billing volume or provider-taxonomy prevalence exists. Rates for services with no claims-based evidence for that provider type are filtered out. Rare but legitimate services are retained &mdash; the system is calibrated to eliminate the impossible without discarding the uncommon.</p>
+          </div>
+        </div>
+        <div class="evidence-section">
+          <p class="section-label">The Evidence</p>
+          <div class="evidence-wrap">
+            <table class="evidence-table">
+              <caption>Pathologists &amp; Psychiatrists in California &mdash; rates for 99213 (Office Visit) and 33533 (CABG Surgery)</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Provider</th>
+                  <th scope="col">Specialty</th>
+                  <th scope="col">99213 (Office Visit)</th>
+                  <th scope="col">33533 (CABG Surgery)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Pathology Associates</td>
+                  <td>Pathology</td>
+                  <td class="num present">$56.53 &ndash; $133.31</td>
+                  <td class="absent">No rates found</td>
+                </tr>
+                <tr>
+                  <td>Roberto A. Novoa, MD</td>
+                  <td>Pathology</td>
+                  <td class="num present">$70.00 &ndash; $335.85</td>
+                  <td class="absent">No rates found</td>
+                </tr>
+                <tr>
+                  <td>Kristine Astvatsaturyan, MD</td>
+                  <td>Pathology</td>
+                  <td class="num present">$54.86 &ndash; $351.44</td>
+                  <td class="absent">No rates found</td>
+                </tr>
+                <tr class="highlight-row">
+                  <td>Pacific Pathology Inc</td>
+                  <td>Pathology</td>
+                  <td class="num present">$81.33</td>
+                  <td class="absent">No rates found</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="table-footer">
+              <span>Source: Starset Analytics TiC data, multiple carriers in CA</span>
+              <span>Data as of Q4 2025</span>
+            </div>
+          </div>
+        </div>
+        <div class="implication">
+          <h3>Why It Matters</h3>
+          <p>The CABG rates are completely absent &mdash; correctly filtered out by claims-based validation. The 99213 office visit rates are present because, while uncommon for pathologists, real billing volume exists (65% of psychiatrists bill 99213 at least once). This is the difference between a system that blindly reports whatever the payer file contains and one that applies clinical and actuarial logic to ensure the data reflects reality.</p>
+        </div>
+        <div class="expandable-section" aria-label="Additional detail for Test C">
+          <details>
+            <summary>See full data</summary>
+            <p style="padding: 14px; color: var(--text-light);">Full evidence panel will be available in a future update.</p>
+          </details>
+        </div>
+      </section>
+
+      <!-- SLIDE 4: TEST D -->
+      <section class="slide test-slide" role="group" aria-roledescription="slide" aria-label="Test D: The Inpatient Outlier Check" data-slug="inpatient-outlier-check">
+        <div class="slide-header">
+          <span class="test-label">Test D</span>
+          <h2>The Inpatient Outlier Check</h2>
+          <p class="hook-question">Does your data contain DRG-based inpatient payments for facility comparisons?</p>
+        </div>
+        <div class="split-panel">
+          <div class="panel-card challenge-card">
+            <h3>The Challenge</h3>
+            <p>There is variance in how price transparency machine-readable files (MRF) report inpatient rates. Carrier MRF rates often reflect base DRG payments. The tell is there is consistency in % of Medicare. Hospital MRF rates may or may not reflect base DRG payments, and may include the outlier amount. This creates inconsistent DRG rates and distorted apples-to-apples comparisons across hospitals and carriers.</p>
+          </div>
+          <div class="panel-card solution-card">
+            <h3>How We Address It</h3>
+            <p>Starset Analytics uses multiple data layers and statistical controls to normalize DRG rates to the base DRG rate. Komodo claims data provides a reference layer, since real claims include both base payments and outlier adjustments. We also apply median and percentile-based filtering to remove extreme values.</p>
+          </div>
+        </div>
+        <div class="evidence-section">
+          <p class="section-label">The Evidence</p>
+          <div class="evidence-wrap">
+            <table class="evidence-table grouped-table">
+              <caption>MS-DRG 470 (Major Joint Replacement, Lower Extremity) &mdash; Carrier MRF vs. Hospital MRF rate comparison</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Medical Center</th>
+                  <th scope="col">Source</th>
+                  <th scope="col" class="num">Rate</th>
+                  <th scope="col" class="num">% of Medicare</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="group-start">
+                  <td rowspan="4">NYP / Columbia University Irving</td>
+                  <td>Carrier MRF (Aetna)</td>
+                  <td class="num">$76,186</td>
+                  <td class="num">310%</td>
+                </tr>
+                <tr>
+                  <td>Carrier MRF (Cigna)</td>
+                  <td class="num">$77,939</td>
+                  <td class="num">317%</td>
+                </tr>
+                <tr class="highlight-row">
+                  <td>Hospital MRF</td>
+                  <td class="num">$94,044</td>
+                  <td class="num">383%</td>
+                </tr>
+                <tr class="normalized-row">
+                  <td><strong>SA Normalized</strong></td>
+                  <td class="num"><strong>$77,100</strong></td>
+                  <td class="num"><strong>314%</strong></td>
+                </tr>
+                <tr class="group-start">
+                  <td rowspan="4">UCI Medical Center</td>
+                  <td>Carrier MRF (Aetna)</td>
+                  <td class="num">$23,778</td>
+                  <td class="num">185%</td>
+                </tr>
+                <tr>
+                  <td>Carrier MRF (Cigna)</td>
+                  <td class="num">$25,100</td>
+                  <td class="num">195%</td>
+                </tr>
+                <tr class="highlight-row">
+                  <td>Hospital MRF</td>
+                  <td class="num">$97,873</td>
+                  <td class="num">762%</td>
+                </tr>
+                <tr class="normalized-row">
+                  <td><strong>SA Normalized</strong></td>
+                  <td class="num"><strong>$24,400</strong></td>
+                  <td class="num"><strong>190%</strong></td>
+                </tr>
+                <tr class="group-start">
+                  <td rowspan="4">Duke University Hospital</td>
+                  <td>Carrier MRF (Aetna)</td>
+                  <td class="num">$35,010</td>
+                  <td class="num">252%</td>
+                </tr>
+                <tr>
+                  <td>Carrier MRF (BCBS NC)</td>
+                  <td class="num">$38,222</td>
+                  <td class="num">275%</td>
+                </tr>
+                <tr class="highlight-row">
+                  <td>Hospital MRF</td>
+                  <td class="num">$13,800</td>
+                  <td class="num">99%</td>
+                </tr>
+                <tr class="normalized-row">
+                  <td><strong>SA Normalized</strong></td>
+                  <td class="num"><strong>$36,600</strong></td>
+                  <td class="num"><strong>263%</strong></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="table-footer">
+              <span>Source: Illustrative data &mdash; not verified, pending team review</span>
+              <span>MS-DRG 470, selected academic medical centers</span>
+            </div>
+          </div>
+        </div>
+        <div class="implication">
+          <h3>Why It Matters</h3>
+          <p>Outlier-driven values have minimal influence, ensuring the captured DRG rate accurately represents the base DRG payment for comparison purposes.</p>
+        </div>
+        <div class="expandable-section" aria-label="Additional detail for Test D">
+          <details>
+            <summary>See full data</summary>
+            <p style="padding: 14px; color: var(--text-light);">Full evidence panel will be available in a future update.</p>
+          </details>
+        </div>
+      </section>
+
+      <!-- SLIDE 5: TEST E -->
+      <section class="slide test-slide" role="group" aria-roledescription="slide" aria-label="Test E: The Outpatient Case Rate Check" data-slug="outpatient-case-rate-check">
+        <div class="slide-header">
+          <span class="test-label">Test E</span>
+          <h2>The Outpatient Case Rate Check</h2>
+          <p class="hook-question">Can you tell whether a hospital's quoted rate is the base procedure fee or an all-inclusive case rate?</p>
+        </div>
+        <div class="split-panel">
+          <div class="panel-card challenge-card">
+            <h3>The Challenge</h3>
+            <p>For an outpatient knee replacement (CPT 27447), some hospitals publish the base negotiated rate for the procedure alone, while others publish a bundled case rate that includes drugs, rehab, and supplies. If your data treats both numbers as equivalent, a $1,798 base rate and a $33,826 case rate appear side by side with no explanation &mdash; making meaningful comparison impossible.</p>
+          </div>
+          <div class="panel-card solution-card">
+            <h3>How We Address It</h3>
+            <p>We flag each rate with its likely structure: base rate, probable case rate, or a calculated case rate we construct by summing commonly co-occurring episode components (drug J-codes, rehab, etc. appearing in 60%+ of knee replacement episodes). When insufficient component data exists, we flag that transparently rather than guessing.</p>
+          </div>
+        </div>
+        <div class="evidence-section">
+          <p class="section-label">The Evidence</p>
+          <div class="evidence-wrap">
+            <table class="evidence-table">
+              <caption>CPT 27447 (Total Knee Replacement) &mdash; Indiana hospital outpatient departments &mdash; Selected carrier plans</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Facility</th>
+                  <th scope="col">Carrier</th>
+                  <th scope="col" class="num">Negotiated Rate</th>
+                  <th scope="col" class="num">Calc. Case Rate</th>
+                  <th scope="col">Flag</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>IU Health</td>
+                  <td>Anthem BCBS</td>
+                  <td class="num">$29,163</td>
+                  <td class="num">&mdash;</td>
+                  <td><span class="flag flag-case-rate">Likely Case Rate</span></td>
+                </tr>
+                <tr>
+                  <td>IU Health</td>
+                  <td>Cigna PPO</td>
+                  <td class="num">$33,826</td>
+                  <td class="num">&mdash;</td>
+                  <td><span class="flag flag-case-rate">Likely Case Rate</span></td>
+                </tr>
+                <tr>
+                  <td>IU Health</td>
+                  <td>UHC PPO</td>
+                  <td class="num">$23,366</td>
+                  <td class="num">&mdash;</td>
+                  <td><span class="flag flag-case-rate">Likely Case Rate</span></td>
+                </tr>
+                <tr class="highlight-row">
+                  <td>MHP Major Hospital</td>
+                  <td>Aetna POS</td>
+                  <td class="num">$1,798</td>
+                  <td class="num">$1,839</td>
+                  <td><span class="flag flag-base">Base Rate</span></td>
+                </tr>
+                <tr>
+                  <td>Community Hosp. North</td>
+                  <td>Anthem BCBS</td>
+                  <td class="num">$4,288</td>
+                  <td class="num">$4,344</td>
+                  <td><span class="flag flag-base">Base Rate</span></td>
+                </tr>
+                <tr>
+                  <td>Community Hosp. North</td>
+                  <td>Cigna PPO</td>
+                  <td class="num">$3,897</td>
+                  <td class="num">&mdash;</td>
+                  <td><span class="flag flag-insufficient">Insufficient Data</span></td>
+                </tr>
+                <tr>
+                  <td>Community Hosp. North</td>
+                  <td>UHC PPO</td>
+                  <td class="num">$14,821</td>
+                  <td class="num">&mdash;</td>
+                  <td><span class="flag flag-case-rate">Likely Case Rate</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="table-footer">
+              <span>Source: Starset Analytics TiC data, IN hospital outpatient depts.</span>
+              <span>Data as of Q4 2025</span>
+            </div>
+          </div>
+        </div>
+        <div class="implication">
+          <h3>Why It Matters</h3>
+          <p>Without rate-type flagging, IU Health's $33,826 Cigna rate and MHP's $1,798 Aetna rate would appear to be a 19x difference for the same procedure. In reality, one is a bundled case rate and the other is the base procedure fee. Distinguishing these &mdash; and being transparent when the data is insufficient to make the call &mdash; is what separates actionable intelligence from misleading numbers.</p>
+        </div>
+        <div class="expandable-section" aria-label="Additional detail for Test E">
+          <details>
+            <summary>See full data</summary>
+            <p style="padding: 14px; color: var(--text-light);">Full evidence panel will be available in a future update.</p>
+          </details>
+        </div>
+      </section>
+
+      <!-- SLIDE 6: CTA -->
+      <section class="slide cta-slide" role="group" aria-roledescription="slide" aria-label="Summary and next steps" data-slug="next-steps">
+        <h2>Your Data Should Survive These Tests</h2>
+        <ul class="summary-list">
+          <li><strong>Modifier Separation</strong> &mdash; Professional and technical components distinguished, not blended</li>
+          <li><strong>Site of Service</strong> &mdash; Place-of-service captured per CMS schema for facility-type comparison</li>
+          <li><strong>Ghost Rate Filtering</strong> &mdash; Claims-validated to eliminate impossible provider-service combinations</li>
+          <li><strong>Inpatient DRG Rates</strong> &mdash; Real facility case rates with payer-level variation visible</li>
+          <li><strong>Case Rate Transparency</strong> &mdash; Base rates and bundled rates flagged, not conflated</li>
+        </ul>
+        <p class="cta-prompt">Want to see your markets run through these tests?</p>
+        <p class="contact-placeholder">[Contact information]</p>
+        <p class="attribution">Starset Analytics &mdash; Price Transparency Intelligence</p>
+      </section>
+
+    </main>
+  </div>
+
+</div>
+
+<!-- ════════ SLIDE NAV BAR (for tests view) ════════ -->
+<nav class="slide-nav" id="slideNav" aria-label="Presentation navigation">
+  <button type="button" class="nav-btn" id="navPrev" aria-label="Previous slide">&#8592;</button>
+  <div class="nav-dots" id="navDots" role="tablist" aria-label="Slide selection"></div>
+  <span class="slide-counter"><span id="currentNum">1</span> / <span id="totalNum">7</span></span>
+  <button type="button" class="nav-btn" id="navNext" aria-label="Next slide">&#8594;</button>
+</nav>
+
+<script>
+// ════════════════════════════════════════
+// DRAWER LOGIC
+// ════════════════════════════════════════
+const drawer = document.getElementById('drawer');
+const drawerOverlay = document.getElementById('drawerOverlay');
+const hamburgerBtn = document.getElementById('hamburgerBtn');
+const mainContent = document.getElementById('mainContent');
+const navItems = document.querySelectorAll('.drawer-nav-item');
+
+function openDrawer() {
+  drawer.classList.add('open');
+  drawerOverlay.classList.add('visible');
+}
+
+function closeDrawer() {
+  drawer.classList.remove('open');
+  drawerOverlay.classList.remove('visible');
+}
+
+function toggleDrawer() {
+  if (drawer.classList.contains('open')) {
+    closeDrawer();
+  } else {
+    openDrawer();
+  }
+}
+
+hamburgerBtn.addEventListener('click', toggleDrawer);
+drawerOverlay.addEventListener('click', closeDrawer);
+
+// View switching
+navItems.forEach(item => {
+  item.addEventListener('click', () => {
+    const viewId = item.dataset.view;
+
+    // Update nav active state
+    navItems.forEach(n => n.classList.remove('active'));
+    item.classList.add('active');
+
+    // Switch views
+    document.querySelectorAll('.content-view').forEach(v => v.classList.remove('active'));
+    document.getElementById(viewId).classList.add('active');
+
+    // Show/hide slide nav
+    const slideNav = document.getElementById('slideNav');
+    if (viewId === 'analytic-tests-view') {
+      slideNav.classList.add('tests-active');
+    } else {
+      slideNav.classList.remove('tests-active');
+    }
+
+    // Close drawer on mobile
+    if (window.innerWidth < 1024) {
+      closeDrawer();
+    }
+  });
+});
+
+// Open drawer by default on desktop
+if (window.innerWidth >= 1024) {
+  openDrawer();
+}
+
+// ════════════════════════════════════════
+// WATER TREATMENT DIAGRAM LOGIC
+// ════════════════════════════════════════
+const stages = [
+  {
+    num: 1,
+    title: 'Water Intake',
+    subtitle: 'Pulling in the raw data',
+    qualityWidth: '12%',
+    qualityColor: '#9D8AFA',
+    qualityLeft: 'Raw, unprocessed',
+    qualityRight: '',
+    left: {
+      heading: 'What Happens with Water',
+      body: 'Raw water is pumped from a natural source \u2014 a river, lake, or mountain reservoir. It contains sediment, bacteria, organic matter, and dissolved chemicals. Nothing has been treated yet. This is the rawest possible form of the supply.'
+    },
+    right: {
+      heading: 'What We Do with Data',
+      items: [
+        '<strong>Source discovery:</strong> Every health insurer and hospital in the U.S. is required to publish their negotiated prices in machine-readable files \u2014 often hundreds of gigabytes each.',
+        '<strong>File acquisition:</strong> We systematically discover, download, and catalog these files from hundreds of insurers and thousands of hospitals nationwide.',
+        '<strong>Format normalization:</strong> Files come in different formats, compression types, and structures. We bring them all into a common staging environment.',
+        'This is pure \u201Craw water\u201D \u2014 massive, messy, and completely unusable without significant processing.'
+      ]
+    }
+  },
+  {
+    num: 2,
+    title: 'Coagulation',
+    subtitle: 'Reconciling identities and surfacing problems',
+    qualityWidth: '30%',
+    qualityColor: '#BD85FC',
+    qualityLeft: 'Errors becoming visible',
+    qualityRight: '',
+    left: {
+      heading: 'What Happens with Water',
+      body: 'Chemical coagulants are added to the water. These carry a positive charge that neutralizes dissolved contaminants, causing tiny particles to bind together into larger clumps called \u201Cfloc.\u201D The water is stirred so these clumps can form. Problems that were invisible are now visible and removable.'
+    },
+    right: {
+      heading: 'What We Do with Data',
+      items: [
+        '<strong>Provider identity reconciliation:</strong> We validate every provider\u2019s National Provider Identifier (NPI) and cross-reference against provider directories to confirm who they are, where they practice, and what they specialize in.',
+        '<strong>Service code extraction:</strong> We pull out every billing code and place-of-service code, then break bundled records into individual, queryable entries.',
+        '<strong>Taxonomy-based flagging:</strong> We check whether each rate makes sense for that provider\u2019s specialty. A surgical billing code linked to a primary care doctor? That\u2019s an error \u2014 flag it.',
+        '<strong>Place-of-service validation:</strong> Inpatient codes should only appear for hospital facilities. We catch mismatches and mark them for removal.',
+        'Like adding coagulants to water \u2014 we\u2019re making the bad data clump together so we can see it and pull it out.'
+      ]
+    }
+  },
+  {
+    num: 3,
+    title: 'Sedimentation',
+    subtitle: 'Removing the obvious junk',
+    qualityWidth: '52%',
+    qualityColor: '#D07FE5',
+    qualityLeft: 'Major errors removed',
+    qualityRight: '',
+    left: {
+      heading: 'What Happens with Water',
+      body: 'The water sits in a sedimentation basin where gravity does the work. The heavy floc particles that formed during coagulation settle to the bottom as sludge. The clearer water at the top moves forward. This is a brute-force step \u2014 the biggest, most obvious contaminants simply drop out.'
+    },
+    right: {
+      heading: 'What We Do with Data',
+      items: [
+        '<strong>Standardization:</strong> Hospital data and carrier data use completely different formats. We transform both into a single common structure so they can be compared and merged.',
+        '<strong>Placeholder removal:</strong> Some hospitals use dummy values (like 999,999,999) to indicate missing rates. We catch these and strip them out instead of treating them as real prices.',
+        '<strong>Per diem conversion:</strong> Daily hospital rates are converted to total-stay equivalents using average length-of-stay data, so we can compare rates on an apples-to-apples basis.',
+        '<strong>Deduplication:</strong> The same rate often appears multiple times in different formats. We consolidate duplicates using proximity scoring against real claims data.',
+        'The heavy junk settles out. What\u2019s left is cleaner, but still needs refinement.'
+      ]
+    }
+  },
+  {
+    num: 4,
+    title: 'Filtration',
+    subtitle: 'Merging sources and weighting by real-world usage',
+    qualityWidth: '72%',
+    qualityColor: '#E17AD1',
+    qualityLeft: 'Cross-validated',
+    qualityRight: '',
+    left: {
+      heading: 'What Happens with Water',
+      body: 'Water passes through layers of fine filters \u2014 sand, gravel, and activated carbon \u2014 that trap the smaller particles sedimentation missed. This is where precision takes over from brute force. The filters catch what gravity alone could not.'
+    },
+    right: {
+      heading: 'What We Do with Data',
+      items: [
+        '<strong>Carrier + hospital merge:</strong> We bring together the insurer\u2019s version of a rate and the hospital\u2019s version. When they agree, confidence goes up. When they don\u2019t, we flag the discrepancy for investigation.',
+        '<strong>Utilization weighting:</strong> Not all rates are equally important. A rate at a hospital that sees 10,000 patients matters far more than one at a facility that sees 50. We weight every rate by real claims volume.',
+        '<strong>Rate selection:</strong> When multiple sources exist for the same provider and service, we select the most reliable one based on data completeness, source quality, and alignment with what\u2019s actually being paid in practice.',
+        'Fine-grained filtering \u2014 only the rates that reflect real market activity survive this stage.'
+      ]
+    }
+  },
+  {
+    num: 5,
+    title: 'Disinfection',
+    subtitle: 'Quality scoring and confidence testing',
+    qualityWidth: '90%',
+    qualityColor: '#F274BA',
+    qualityLeft: 'Trust-scored',
+    qualityRight: '',
+    left: {
+      heading: 'What Happens with Water',
+      body: 'Even after filtration, invisible pathogens can remain. Disinfection \u2014 chlorine, UV light, or ozone treatment \u2014 kills bacteria, viruses, and parasites that made it through every previous step. This is the final safety gate before the water is declared safe.'
+    },
+    right: {
+      heading: 'What We Do with Data',
+      items: [
+        '<strong>Claims cross-check:</strong> Every rate is compared against actual paid claims data to verify it reflects reality. If a negotiated rate is wildly different from what\u2019s actually being paid, something is wrong.',
+        '<strong>Confidence scoring:</strong> Each data point receives a trust score from 0 to 100, based on completeness, consistency across sources, alignment with benchmarks, and data freshness.',
+        '<strong>Outlier detection:</strong> Rates that are dramatically out of line with Medicare benchmarks or market peers get flagged for review or exclusion.',
+        'The final safety check. Like killing the last pathogens \u2014 we\u2019re catching the subtle problems that passed through every earlier stage.'
+      ]
+    }
+  },
+  {
+    num: 6,
+    title: 'Storage',
+    subtitle: 'The finished national dataset',
+    qualityWidth: '97%',
+    qualityColor: '#F99062',
+    qualityLeft: 'Production-ready',
+    qualityRight: '',
+    left: {
+      heading: 'What Happens with Water',
+      body: 'Clean, treated water is pumped into storage tanks and water towers. It\u2019s been tested, certified safe, and sits ready for delivery on demand. The supply is reliable, the quality is verified, and it can reach users whenever they need it.'
+    },
+    right: {
+      heading: 'What We Do with Data',
+      items: [
+        '<strong>Gap filling:</strong> Where coverage gaps remain, we use statistical models to generate estimates \u2014 always clearly flagged so users know what\u2019s directly observed versus modeled.',
+        '<strong>National dataset:</strong> The complete, validated dataset covers hundreds of payers, thousands of providers, and millions of rate records across every U.S. market.',
+        '<strong>Quarterly refresh:</strong> The dataset is updated every quarter with fresh data, so it always reflects current market conditions \u2014 not stale pricing from a year ago.',
+        'Clean, trusted, ready to go. The data equivalent of a full water tower.'
+      ]
+    }
+  },
+  {
+    num: 7,
+    title: 'Distribution',
+    subtitle: 'Intelligence delivered to brokers and clients',
+    qualityWidth: '100%',
+    qualityColor: '#2D1B4E',
+    qualityLeft: 'In your hands',
+    qualityRight: '',
+    left: {
+      heading: 'What Happens with Water',
+      body: 'Clean water flows through the distribution network \u2014 pipes, pumps, and valves \u2014 to reach homes, businesses, and public facilities. The end user turns on the tap and gets safe, clean water without needing to understand the treatment plant behind it.'
+    },
+    right: {
+      heading: 'What We Do with Data',
+      items: [
+        '<strong>Analytics platform:</strong> Brokers analyze negotiated rates for specific procedures, compare carrier networks, and identify cost-saving opportunities \u2014 all through an intuitive platform.',
+        '<strong>Custom reporting:</strong> Market-specific analyses, network evaluations, and rate benchmarking delivered in formats that support renewal negotiations and plan design decisions.',
+        '<strong>Enabling Data-Driven Plan Oversight:</strong> Built to help plan sponsors leverage new pricing insights as oversight of employer health plans intensifies.',
+        'You don\u2019t need to understand the treatment process. You just turn on the tap and get clean, trusted market intelligence.'
+      ]
+    }
+  }
+];
+
+const diagramEl = document.getElementById('diagram');
+const detailPanel = document.getElementById('detailPanel');
+const hotspots = diagramEl.querySelectorAll('.hotspot');
+let activeIdx = null;
+
+hotspots.forEach(el => {
+  el.addEventListener('click', () => {
+    const idx = parseInt(el.dataset.stage);
+
+    if (activeIdx === idx) {
+      activeIdx = null;
+      el.classList.remove('active');
+      detailPanel.innerHTML = '';
+      return;
+    }
+
+    hotspots.forEach(h => h.classList.remove('active'));
+    el.classList.add('active');
+    activeIdx = idx;
+
+    const s = stages[idx];
+    detailPanel.innerHTML = `
+      <div class="detail-card visible">
+        <div class="detail-header">
+          <div class="detail-number">${s.num}</div>
+          <div>
+            <h2>${s.title}</h2>
+            <div class="subtitle">${s.subtitle}</div>
+          </div>
+        </div>
+        <div class="detail-body">
+          <div class="detail-section">
+            <h4>${s.left.heading}</h4>
+            <p>${s.left.body}</p>
+          </div>
+          <div class="detail-section">
+            <h4>${s.right.heading}</h4>
+            <ul>${s.right.items.map(i => `<li>${i}</li>`).join('')}</ul>
+          </div>
+          <div class="detail-section quality-section">
+            <h4>Data Quality at This Stage</h4>
+            <div class="quality-bar">
+              <div class="quality-fill" style="width: ${s.qualityWidth}; background: ${s.qualityColor};"></div>
+            </div>
+            <div class="quality-label">
+              <span>${s.qualityLeft}</span>
+              <span>${s.qualityRight}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    detailPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+});
+
+// Click outside diagram to deselect
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.hotspot') && !e.target.closest('.detail-card') && !e.target.closest('.drawer') && !e.target.closest('.hamburger')) {
+    hotspots.forEach(h => h.classList.remove('active'));
+    activeIdx = null;
+    detailPanel.innerHTML = '';
+  }
+});
+
+
+// ════════════════════════════════════════
+// SLIDE NAVIGATION LOGIC (5 Analytic Tests)
+// ════════════════════════════════════════
+const slides = Array.from(document.querySelectorAll('#deck .slide'));
+const totalSlides = slides.length;
+let currentSlideIndex = 0;
+
+const navPrev = document.getElementById('navPrev');
+const navNext = document.getElementById('navNext');
+const navDotsEl = document.getElementById('navDots');
+const currentNum = document.getElementById('currentNum');
+const totalNum = document.getElementById('totalNum');
+const announcer = document.getElementById('slideAnnounce');
+
+totalNum.textContent = String(totalSlides);
+
+// Build dot indicators
+slides.forEach((slide, i) => {
+  const dot = document.createElement('button');
+  dot.type = 'button';
+  dot.className = 'nav-dot';
+  dot.setAttribute('role', 'tab');
+  dot.setAttribute('aria-label', slide.getAttribute('aria-label') || ('Slide ' + (i + 1)));
+  dot.addEventListener('click', () => slideNavigateTo(i));
+  navDotsEl.appendChild(dot);
+});
+
+const dots = Array.from(navDotsEl.querySelectorAll('.nav-dot'));
+
+function slideNavigateTo(index) {
+  if (index < 0 || index >= totalSlides || index === currentSlideIndex) return;
+
+  slides[currentSlideIndex].classList.remove('active');
+  slides[currentSlideIndex].setAttribute('aria-hidden', 'true');
+
+  currentSlideIndex = index;
+  slides[currentSlideIndex].classList.add('active');
+  slides[currentSlideIndex].removeAttribute('aria-hidden');
+
+  dots.forEach((d, i) => d.classList.toggle('active', i === currentSlideIndex));
+  currentNum.textContent = String(currentSlideIndex + 1);
+  navPrev.disabled = currentSlideIndex === 0;
+  navNext.disabled = currentSlideIndex === totalSlides - 1;
+
+  const slug = slides[currentSlideIndex].dataset.slug;
+  if (slug) {
+    history.replaceState(null, '', '#slide=' + slug);
+  }
+
+  const label = slides[currentSlideIndex].getAttribute('aria-label') || ('Slide ' + (currentSlideIndex + 1));
+  announcer.textContent = label + '. Slide ' + (currentSlideIndex + 1) + ' of ' + totalSlides + '.';
+
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+// Keyboard navigation (only when tests view is active)
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (!document.getElementById('analytic-tests-view').classList.contains('active')) return;
+
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+    e.preventDefault();
+    slideNavigateTo(currentSlideIndex + 1);
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    slideNavigateTo(currentSlideIndex - 1);
+  }
+});
+
+navPrev.addEventListener('click', () => slideNavigateTo(currentSlideIndex - 1));
+navNext.addEventListener('click', () => slideNavigateTo(currentSlideIndex + 1));
+
+// Initialize slides
+function initSlides() {
+  slides.forEach((s, i) => {
+    s.classList.toggle('active', i === 0);
+    if (i !== 0) s.setAttribute('aria-hidden', 'true');
+  });
+
+  currentSlideIndex = 0;
+  dots.forEach((d, i) => d.classList.toggle('active', i === 0));
+  currentNum.textContent = '1';
+  navPrev.disabled = true;
+  navNext.disabled = totalSlides <= 1;
+}
+
+initSlides();
+</script>
+
+</body>
+</html>
