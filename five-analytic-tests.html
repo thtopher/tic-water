@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>5 Analytic Tests | Third Horizon Analytics</title>
+  <title>4 Analytic Tests | Third Horizon Analytics</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Fira+Sans:wght@400;500;600;700&display=swap');
 
@@ -698,16 +698,16 @@
 <body>
   <a class="skip-link" href="#deck">Skip to presentation</a>
 
-  <main id="deck" class="deck" role="region" aria-roledescription="presentation" aria-label="5 Analytic Tests Your Price Transparency Data Should Pass">
+  <main id="deck" class="deck" role="region" aria-roledescription="presentation" aria-label="4 Analytic Tests Your Price Transparency Data Should Pass">
 
     <!-- ═══════ SLIDE 0: TITLE ═══════ -->
     <section class="slide title-slide" role="group" aria-roledescription="slide" aria-label="Title slide" data-slug="title">
       <p class="kicker">Third Horizon Analytics &mdash; Price Transparency Knowledge Brief</p>
-      <h1>5 Tests Your Price Transparency Data Should Pass</h1>
+      <h1>4 Tests Your Price Transparency Data Should Pass</h1>
       <p class="subtitle">How do you know your rate data is real, complete, and trustworthy?</p>
       <p class="setup">
         Transparency in Coverage data is now publicly available from every major health insurer. But raw MRF files
-        are massive, messy, and full of traps that produce misleading results if not treated properly. These five
+        are massive, messy, and full of traps that produce misleading results if not treated properly. These four
         analytic tests represent the most common data quality challenges we encounter &mdash; and how Third Horizon
         addresses each one to deliver intelligence you can act on with confidence.
       </p>
@@ -1105,112 +1105,7 @@
       </div>
     </section>
 
-    <!-- ═══════ SLIDE 5: TEST E — THE OUTPATIENT CASE RATE CHECK ═══════ -->
-    <section class="slide test-slide" role="group" aria-roledescription="slide" aria-label="Test E: The Outpatient Case Rate Check" data-slug="outpatient-case-rate-check">
-      <div class="slide-header">
-        <span class="test-label">Test E</span>
-        <h2>The Outpatient Case Rate Check</h2>
-        <p class="hook-question">Can you tell whether a hospital's quoted rate is the base procedure fee or an all-inclusive case rate?</p>
-      </div>
-
-      <div class="split-panel">
-        <div class="panel-card challenge-card">
-          <h3>The Challenge</h3>
-          <p>For an outpatient knee replacement (CPT 27447), some hospitals publish the base negotiated rate for the procedure alone, while others publish a bundled case rate that includes drugs, rehab, and supplies. If your data treats both numbers as equivalent, a $1,798 base rate and a $33,826 case rate appear side by side with no explanation &mdash; making meaningful comparison impossible.</p>
-        </div>
-        <div class="panel-card solution-card">
-          <h3>How We Address It</h3>
-          <p>We flag each rate with its likely structure: base rate, probable case rate, or a calculated case rate we construct by summing commonly co-occurring episode components (drug J-codes, rehab, etc. appearing in 60%+ of knee replacement episodes). When insufficient component data exists, we flag that transparently rather than guessing.</p>
-        </div>
-      </div>
-
-      <div class="evidence-section">
-        <p class="section-label">The Evidence</p>
-        <div class="evidence-wrap">
-          <table class="evidence-table">
-            <caption>CPT 27447 (Total Knee Replacement) &mdash; Indiana hospital outpatient departments &mdash; Selected carrier plans</caption>
-            <thead>
-              <tr>
-                <th scope="col">Facility</th>
-                <th scope="col">Carrier</th>
-                <th scope="col" class="num">Negotiated Rate</th>
-                <th scope="col" class="num">Calc. Case Rate</th>
-                <th scope="col">Flag</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>IU Health</td>
-                <td>Anthem BCBS</td>
-                <td class="num">$29,163</td>
-                <td class="num">&mdash;</td>
-                <td><span class="flag flag-case-rate">Likely Case Rate</span></td>
-              </tr>
-              <tr>
-                <td>IU Health</td>
-                <td>Cigna PPO</td>
-                <td class="num">$33,826</td>
-                <td class="num">&mdash;</td>
-                <td><span class="flag flag-case-rate">Likely Case Rate</span></td>
-              </tr>
-              <tr>
-                <td>IU Health</td>
-                <td>UHC PPO</td>
-                <td class="num">$23,366</td>
-                <td class="num">&mdash;</td>
-                <td><span class="flag flag-case-rate">Likely Case Rate</span></td>
-              </tr>
-              <tr class="highlight-row">
-                <td>MHP Major Hospital</td>
-                <td>Aetna POS</td>
-                <td class="num">$1,798</td>
-                <td class="num">$1,839</td>
-                <td><span class="flag flag-base">Base Rate</span></td>
-              </tr>
-              <tr>
-                <td>Community Hosp. North</td>
-                <td>Anthem BCBS</td>
-                <td class="num">$4,288</td>
-                <td class="num">$4,344</td>
-                <td><span class="flag flag-base">Base Rate</span></td>
-              </tr>
-              <tr>
-                <td>Community Hosp. North</td>
-                <td>Cigna PPO</td>
-                <td class="num">$3,897</td>
-                <td class="num">&mdash;</td>
-                <td><span class="flag flag-insufficient">Insufficient Data</span></td>
-              </tr>
-              <tr>
-                <td>Community Hosp. North</td>
-                <td>UHC PPO</td>
-                <td class="num">$14,821</td>
-                <td class="num">&mdash;</td>
-                <td><span class="flag flag-case-rate">Likely Case Rate</span></td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="table-footer">
-            <span>Source: Third Horizon TiC data, IN hospital outpatient depts.</span>
-            <span>Data as of Q4 2025</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="implication">
-        <h3>Why It Matters</h3>
-        <p>Without rate-type flagging, IU Health's $33,826 Cigna rate and MHP's $1,798 Aetna rate would appear to be a 19x difference for the same procedure. In reality, one is a bundled case rate and the other is the base procedure fee. Distinguishing these &mdash; and being transparent when the data is insufficient to make the call &mdash; is what separates actionable intelligence from misleading numbers.</p>
-      </div>
-
-      <div class="expandable-section" aria-label="Additional detail for Test E">
-        <details>
-          <summary>See full data</summary>
-          <p style="padding: 14px; color: var(--text-light);">Full evidence panel will be available in a future update.</p>
-        </details>
-      </div>
-    </section>
-
-    <!-- ═══════ SLIDE 6: CTA ═══════ -->
+    <!-- ═══════ SLIDE 5: CTA ═══════ -->
     <section class="slide cta-slide" role="group" aria-roledescription="slide" aria-label="Summary and next steps" data-slug="next-steps">
       <h2>Your Data Should Survive These Tests</h2>
 
@@ -1219,7 +1114,6 @@
         <li><strong>Site of Service</strong> &mdash; Place-of-service captured per CMS schema for facility-type comparison</li>
         <li><strong>Ghost Rate Filtering</strong> &mdash; Claims-validated to eliminate impossible provider-service combinations</li>
         <li><strong>Inpatient DRG Rates</strong> &mdash; Real facility case rates with payer-level variation visible</li>
-        <li><strong>Case Rate Transparency</strong> &mdash; Base rates and bundled rates flagged, not conflated</li>
       </ul>
 
       <p class="cta-prompt">Want to see your markets run through these tests?</p>
@@ -1237,7 +1131,7 @@
   <nav class="slide-nav" aria-label="Presentation navigation">
     <button type="button" class="nav-btn" id="navPrev" aria-label="Previous slide">&#8592;</button>
     <div class="nav-dots" id="navDots" role="tablist" aria-label="Slide selection"></div>
-    <span class="slide-counter"><span id="currentNum">1</span> / <span id="totalNum">7</span></span>
+    <span class="slide-counter"><span id="currentNum">1</span> / <span id="totalNum">6</span></span>
     <button type="button" class="nav-btn" id="navNext" aria-label="Next slide">&#8594;</button>
   </nav>
 
